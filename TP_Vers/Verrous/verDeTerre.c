@@ -8,6 +8,7 @@
 #include <commun.h>
 #include <terrain.h>
 #include <vers.h>
+#include <ver.h>
 #include <jeu.h>
 
 int verrou ( int fd, short l_type, short l_whence, long l_start, long l_len, short l_pid, int ope ) {
@@ -23,6 +24,45 @@ int verrou ( int fd, short l_type, short l_whence, long l_start, long l_len, sho
 	return fcntl( fd, ope, &verrou );
 }
 
+int verrou9cases( int fd, int x, int y, off_t fdEmp, int poser ) {
+
+	if ( poser ) {
+
+		terrain_xy2pos( fd, x - 1, y - 1, &fdEmp);
+
+		if ( verrou( fd, F_WRLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
+			return -1;
+
+		terrain_xy2pos( fd, x - 1, y, &fdEmp);
+
+		if ( verrou( fd, F_WRLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
+			return -2;
+
+		terrain_xy2pos( fd, x - 1, y + 1, &fdEmp);
+
+		if ( verrou( fd, F_WRLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
+			return -3;
+	} else {
+
+		terrain_xy2pos( fd, x - 1, y - 1, &fdEmp);
+
+		if ( verrou( fd, F_UNLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
+			return -4;
+
+		terrain_xy2pos( fd, x - 1, y, &fdEmp);
+
+		if ( verrou( fd, F_UNLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
+			return -5;
+
+		terrain_xy2pos( fd, x - 1, y + 1, &fdEmp);
+
+		if ( verrou( fd, F_UNLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
+			return -6;
+	}
+
+	return 0;
+}
+
 int main( int nb_arg , char * tab_arg[] ) {
 
 	/* Parametres */
@@ -30,10 +70,12 @@ int main( int nb_arg , char * tab_arg[] ) {
 	case_t marque = CASE_LIBRE ;
 	char nomprog[128] ;
 
-	coord_t tete, *voisin = NULL;
+	coord_t *voisin = NULL;
 	int no_err, fd, nbLigne, nbCol, nbVoisin, indLibre;
 	case_t emplacement;
 	off_t fdEmp;
+
+	ver_t ver;
 
 	/*----------*/
 
@@ -73,93 +115,34 @@ int main( int nb_arg , char * tab_arg[] ) {
 	if ( verrou( fd, F_UNLCK, 0, 1, 2, getpid(), F_SETLKW) )
 		return -3;
 
-	do {
-
-		tete.x = random() % nbCol;
-		tete.y = random() % nbLigne;
-		tete.pos = terrain_xy2pos( fd, tete.x, tete.y, &(tete.pos));
-
-		terrain_case_lire( fd, tete, &emplacement);
-
-	} while ( emplacement != CASE_LIBRE );
+	if ( jeu_ver_initialiser( fd, nbLigne, nbCol, &ver) )
+		return -4;	
 
 	/* meme si le fichier ne vas etre utilisé que en lecture dans un premier temps, je fais le choix de mettre un verrou en ecriture puisque apres cette lecture si une case est libre on va ecrire dans cette case et au lieu de mettre 3 verrou en lecture puis 1 verrour en ecriture je bloque directement en ecriture*/
 
-	terrain_xy2pos( fd, tete.x - 1, tete.y - 1, &fdEmp);
-
-	if ( verrou( fd, F_WRLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
-		return -4;
-
-	terrain_xy2pos( fd, tete.x - 1, tete.y, &fdEmp);
-
-	if ( verrou( fd, F_WRLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
-		return -5;
-
-	terrain_xy2pos( fd, tete.x - 1, tete.y + 1, &fdEmp);
-
-	if ( verrou( fd, F_WRLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
-		return -6;
+	verrou9cases( fd, ver.tete.x, ver.tete.y, fdEmp, 1 );
 	
-	if ( ( no_err = terrain_voisins_rechercher( fd, tete, &voisin, &nbVoisin )) )
+	if ( ( no_err = terrain_voisins_rechercher( fd, ver.tete, &voisin, &nbVoisin )) )
 		return -7;
 
-	while ( ( no_err = terrain_case_libre_rechercher( fd, voisin, nbVoisin, &indLibre ) ) && indLibre != -1 ) {
+	while ( !( no_err = terrain_case_libre_rechercher( fd, voisin, nbVoisin, &indLibre ) ) && indLibre != -1 ) {
 
 		if( (no_err = terrain_marque_ecrire( fd, voisin[indLibre], marque ) ) )
 			return -8;
 
-		terrain_xy2pos( fd, tete.x - 1, tete.y - 1, &fdEmp);
+		verrou9cases( fd, ver.tete.x, ver.tete.y, fdEmp, 0 );
 
-		if ( verrou( fd, F_UNLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
-			return -9;
-
-		terrain_xy2pos( fd, tete.x - 1, tete.y, &fdEmp);
-
-		if ( verrou( fd, F_UNLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
-			return -10;
-
-		terrain_xy2pos( fd, tete.x - 1, tete.y + 1, &fdEmp);
-
-		if ( verrou( fd, F_UNLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
-			return -11;
-
-		tete = voisin[indLibre]; 
+		ver.tete = voisin[indLibre]; 
 
 		sleep( random() % TEMPS_MOYEN + 1 );
 
-		terrain_xy2pos( fd, tete.x - 1, tete.y - 1, &fdEmp);
-
-		if ( verrou( fd, F_WRLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
-			return -12;
-
-		terrain_xy2pos( fd, tete.x - 1, tete.y, &fdEmp);
-
-		if ( verrou( fd, F_WRLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
-			return -13;
-
-		terrain_xy2pos( fd, tete.x - 1, tete.y + 1, &fdEmp);
-
-		if ( verrou( fd, F_WRLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
-			return -14;
+		verrou9cases( fd, ver.tete.x, ver.tete.y, fdEmp, 1 );
 		
-		if ( ( no_err = terrain_voisins_rechercher( fd, tete, &voisin, &nbVoisin )) )
+		if ( ( no_err = terrain_voisins_rechercher( fd, ver.tete, &voisin, &nbVoisin )) )
 			return -15;
 	}
 
-	terrain_xy2pos( fd, tete.x - 1, tete.y - 1, &fdEmp);
-
-	if ( verrou( fd, F_UNLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
-		return -16;
-
-	terrain_xy2pos( fd, tete.x - 1, tete.y, &fdEmp);
-
-	if ( verrou( fd, F_UNLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
-		return -17;
-
-	terrain_xy2pos( fd, tete.x - 1, tete.y + 1, &fdEmp);
-
-	if ( verrou( fd, F_UNLCK, 0, fdEmp, CASE_TAILLE * 3, getpid(), F_SETLKW) )
-		return -18;
+	verrou9cases( fd, ver.tete.x, ver.tete.y, fdEmp, 0 );
 
 	printf( "\n\n%s : ----- Fin du ver %c (%d) -----\n\n ", nomprog, marque, getpid() );
 
