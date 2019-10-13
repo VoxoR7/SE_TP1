@@ -58,6 +58,9 @@ int main( int nb_arg , char * tab_arg[] ) {
 	while ( 1 ) {
 
 		stat( fich_terrain, &stat2);
+
+		printf("dernierAff : %ld, st_mtime : %ld\n", dernierAff, stat2.st_mtime);
+
 		if ( dernierAff < stat2.st_mtime ) {
 
 			if ( verrou( fd, F_RDLCK, 0, 0, 0, getpid(), F_SETLKW) )
@@ -68,6 +71,8 @@ int main( int nb_arg , char * tab_arg[] ) {
 
 			if ( verrou( fd, F_UNLCK, 0, 0, 0, getpid(), F_SETLKW) )
 				return -1;
+
+			dernierAff = stat2.st_mtime;
 		}
 
 		sleep(1);
