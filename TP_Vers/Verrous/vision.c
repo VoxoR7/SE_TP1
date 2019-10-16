@@ -53,13 +53,11 @@ int main( int nb_arg , char * tab_arg[] ) {
 
 	printf("\n%s : ----- Debut de l'affichage du terrain ----- \n", nomprog );
 
-	fd = open( fich_terrain, O_RDWR );
+	fd = open( fich_terrain, O_RDONLY );
 
 	while ( 1 ) {
 
 		stat( fich_terrain, &stat2);
-
-		printf("dernierAff : %ld, st_mtime : %ld\n", dernierAff, stat2.st_mtime);
 
 		if ( dernierAff < stat2.st_mtime ) {
 
@@ -77,6 +75,8 @@ int main( int nb_arg , char * tab_arg[] ) {
 
 		sleep(1);
 	}
+
+	close( fd);
 
 	printf("\n%s : --- Arret de l'affichage du terrain ---\n", nomprog );
 

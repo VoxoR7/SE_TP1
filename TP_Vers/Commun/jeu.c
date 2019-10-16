@@ -18,12 +18,10 @@
  * - la marque du ver soit affectee
  */
 
-extern 
-int jeu_ver_initialiser( const int fd_terrain, /* Fichier terrain */
+extern int jeu_ver_initialiser( const int fd_terrain, /* Fichier terrain */
 			 const int nb_lig, /* dimensions terrain */
 			 const int nb_col, 
-			 ver_t * ver )  /* ver a initialiser */			     
-{
+			 ver_t * ver )  /* ver a initialiser */	{
 
      booleen_t trouve = FAUX ;
      case_t c = CASE_LIBRE ;
@@ -52,22 +50,18 @@ int jeu_ver_initialiser( const int fd_terrain, /* Fichier terrain */
 	       return(noerr) ;
 	  
 	  /* Ecriture position initiale */
-	  if( c == CASE_LIBRE )
-	  {
-	       terrain_marque_ecrire( fd_terrain,
-				      ver->tete,
-				      ver->marque) ;
+	  if( c == CASE_LIBRE ) {
+
+	       terrain_marque_ecrire( fd_terrain, ver->tete, ver->marque);
 	       trouve = VRAI ;
-	  }
-	  else
-	  {
-	       ver->tete.x = ( ver->tete.x + 1 ) % nb_col ;
-	       if(ver->tete.x == 0 ) 
-	       {
-		    ver->tete.y = (ver->tete.y + 1) % nb_lig ;
-	       }
-	       cpt_cases++ ;
-	  }
+	  }  else {
+
+			ver->tete.x = ( ver->tete.x + 1 ) % nb_col ;
+			if(ver->tete.x == 0 ) 
+				ver->tete.y = (ver->tete.y + 1) % nb_lig ;
+
+			cpt_cases++ ;
+	  	}
      }
      
      if( trouve )

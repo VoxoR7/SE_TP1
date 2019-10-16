@@ -27,31 +27,32 @@ extern int terrain_afficher( const int fd ) {
       * Mise de la position courante au debut du fichier
       */
 
-     if( lseek(fd, (off_t)0, SEEK_SET) == -1 ) {
-
-          perror("terrain_afficher : Pb lseek debut fichier \n");
-          return(ERREUR) ;
+     if( lseek(fd, (off_t)0, SEEK_SET) == -1 )
+     {
+	  perror("terrain_afficher : Pb lseek debut fichier \n");
+	  return(ERREUR) ;
      }
 
      /* 
       * Lecture des dimensions du terrain 
       */
      
-     if( read( fd , &nb_lig , sizeof(int)) == -1 ) {
-
-	     perror("terrain_afficher : Pb read sur lecture nb lignes");
-	     return(ERREUR) ;
+     if( read( fd , &nb_lig , sizeof(int)) == -1 )
+     {
+	  perror("terrain_afficher : Pb read sur lecture nb lignes");
+	  return(ERREUR) ;
      }
 
-     if( read( fd , &nb_col , sizeof(int)) == -1 ) {
-
-	     perror( "terrain_afficher : Pb read sur lecture nb colonnes");
-	     return(ERREUR) ;
+     if( read( fd , &nb_col , sizeof(int)) == -1 )
+     {
+	  perror( "terrain_afficher : Pb read sur lecture nb colonnes");
+	  return(ERREUR) ;
      }
 
-     #ifdef _DEBUG_ 
-          printf("terrain_afficher --> affichage aire de jeu [%d,%d]\n", nb_lig , nb_col );
-     #endif
+#ifdef _DEBUG_ 
+     printf("terrain_afficher --> affichage aire de jeu [%d,%d]\n", 
+	    nb_lig , nb_col );
+#endif
 
      /* 
       * Affichage de l'aire de jeu
@@ -61,23 +62,25 @@ extern int terrain_afficher( const int fd ) {
      for( c=0 ; c<nb_col ; c++ ) fprintf( stdout , ".---" ); fprintf(stdout , ".\n");
 
      /* Affichage corps */
-     for( l=0 ; l<nb_lig; l++ ) {
-
-          for( c=0 ; c<nb_col ; c++ ) {
-
-               if( read( fd , &cellule, sizeof(char)) == -1 ) {
-
-                    sprintf( mess , "terrain_afficher : erreur sur lecture aire[%i,%i]\n",l,c);
-                    perror(mess);
-                    return(ERREUR);
-               }
-     
-               fprintf( stdout , "| %c " , cellule );
-	     }
+     for( l=0 ; l<nb_lig; l++ )
+     {
+	  for( c=0 ; c<nb_col ; c++ )
+	  {
+	       if( read( fd , &cellule, sizeof(char)) == -1 )
+	       {
+		    sprintf( mess , "terrain_afficher : erreur sur lecture aire[%i,%i]\n",l,c);
+		    perror(mess);
+		    return(ERREUR) ;
+	       }
+	       fprintf( stdout , "| %c " , cellule );
+	  }
 	  
-          fprintf(stdout , "|\n");
-          if( l != nb_lig-1 )
-               for( c=0 ; c<nb_col ; c++ ) fprintf( stdout , "|---" ); fprintf(stdout , "|\n");
+	  fprintf(stdout , "|\n");
+	  if( l != nb_lig-1 )
+	  {
+	       for( c=0 ; c<nb_col ; c++ ) fprintf( stdout , "|---" ); fprintf(stdout , "|\n");
+	  }
+	  
      }
 
      /* Affichage derniere ligne */
