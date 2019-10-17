@@ -1,0 +1,14 @@
+remarque : Je suppose le fichier de jeu deja creer ( grace a init_fich_terrain ), on pourrait également faire la fonction de creation du terrain de jeu directement dans vision.c.
+
+vision.c
+
+	a chaque fois que le fichier change, on pose un verrou en lecture sur le fichier puis on affiche à l'écran le terrain de jeu. Le verrou permet d'éviter l'écriture d'un ver pendant la lecuture.
+
+verDeTerre.c
+
+	dans un premier temps, on verrouile tous le fichier en ecriture afin de récuperer les dimension du terrain, puis on place la tete du vers ( d'ou la nécéssité de mettre un verrou sur le fichier en entier puisque on ne sait pas on vas être le ver ).
+
+	ensuite, grace à une fonction ( verrou9cases ) on verrouille en écriture les 8 cases autours de la tete ( on verrouille également la tête ), dans un premier temps on ne fait que lire, pour rechercher des case libres ( donc un verrou en ecriture pourrait suffire ) cependant juste apres avoir trouvé une case libre on écrit dans celle-ci donc plutot que de poser un verrou en lecture puis l'enlever pour juste apres remettre un verrou en ecriture je fais le choix de directement poser un verrou en eciture.
+	pour la fonction verrou9cases, si la case centrale est sur les bords on verrouille des cases non nécéssaire, cependant les vérifications a faire pour éviter cela sont selon moi trop importantes pour le peu que cela vas nous faire gagner ( au pire des cas on bloque seulement 5 cases, quand la tete est sur les bords ).
+
+	Après avoir bloqué, on récupere une case libre autour de la tête, on écris la marque du vers et on affecte à la tête du vers la nouvelle case puis on enleve le verrous des 9 cases.

@@ -105,17 +105,19 @@ int main( int nb_arg , char * tab_arg[] ) {
 
 	fd = open( fich_terrain, O_RDWR );
 
-	if ( verrou( fd, F_RDLCK, 0, 0, sizeof(int) * 2, getpid(), F_SETLKW) )
+	if ( verrou( fd, F_WRLCK, 0, 0, 0, getpid(), F_SETLKW) )
 		return -1;
 
 	if ( terrain_dim_lire(fd, &nbLigne, &nbCol) )
 		return -2;
 
-	if ( verrou( fd, F_UNLCK, 0, 0, sizeof(int) * 2, getpid(), F_SETLKW) )
-		return -3;
-
 	if ( jeu_ver_initialiser( fd, nbLigne, nbCol, &ver) )
 		return -4;
+
+	terrain_marque_ecrire( fd, ver.tete, marque); /* jeu_ver_initialiser le fait deja mais ne marche pas, je suis obligé de le refaire ici */
+
+	if ( verrou( fd, F_UNLCK, 0, 0, 0, getpid(), F_SETLKW) ) /* pose un verrou sur les 8 cases autours ( plus la case du milieu ) */
+		return -3;
 
 	/* meme si le fichier ne vas etre utilisé que en lecture dans un premier temps, je fais le choix de mettre un verrou en ecriture puisque apres cette lecture si une case est libre on va ecrire dans cette case et au lieu de mettre 3 verrou en lecture puis 1 verrour en ecriture je bloque directement en ecriture*/
 
