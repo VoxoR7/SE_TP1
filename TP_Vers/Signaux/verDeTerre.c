@@ -65,10 +65,10 @@ int main( int nb_arg , char * tab_arg[] ) {
 
     sigaction( SIGUSR2, &act, NULL );
 
-     while ( continu ) {
+     while ( continu ) { /* tant que aire.c ne les a pas demander d'arreter */
 
-          sleep( random() % TEMPS_MOYEN + 1 );
-          if ( continu )
+          sleep( random() % TEMPS_MOYEN + 1 ); /* il continue de jouer */
+          if ( continu ) /* quand le vers est joue sur une case ou il est bloqué, il fait le kill puis revient sur le sleep juste au-dessus avant que aire.c ai eu le temps de lui dire de s'arrter, le re-test de continue est donc necessaire */
                kill( pid_aire, SIGUSR1 );
      }
      
