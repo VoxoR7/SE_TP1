@@ -164,16 +164,14 @@ int main( int nb_arg , char * tab_arg[] ) {
         pause(); /* on attend des signal */
     }
 
-    printf("alarm\n");
-
     continu = 1;
     alarm(10); 
 
     while ( continu ) { /* attente des processus qui continuerais eventuellement de se connecter */
 
         pause();
-        alarm(0); // arret de l'ancienne alarm
-        alarm(10); // remise de l'alarm
+        alarm(0); /* arret de l'alarme */
+        alarm(10); /* remise de l'alarme pour 10 sec. */
     }
 
     printf("\n\n\t----- %s : Fin du jeu -----\n\n" , Nom_Prog );
